@@ -1,0 +1,123 @@
+---
+title: "R Assignment 1"
+author: "Azam && 18201501"
+date: "12 October 2018"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Loading the dataset 
+```{r}
+EurostatCrime <- read.csv(file="EurostatCrime2015.csv", row.names = 1)
+EurostatCrime
+```
+
+## Size and the structure of the dataset
+```{r}
+dim(EurostatCrime)
+str(EurostatCrime)
+```
+
+## Add new column Sex.crime to the dataset
+```{r}
+EurostatCrime1 <- EurostatCrime
+str(EurostatCrime1)
+EurostatCrime1$Sex.crime <- EurostatCrime1$Rape + EurostatCrime1$Sexual.assault + EurostatCrime1$Sexual.violence
+head(EurostatCrime1)
+```
+
+## Remove the colm Rape, Sexual.assault and Sexual.violence
+```{r}
+EurostatCrime1[,c("Rape", "Sexual.assault", "Sexual.violence")] <- list(NULL)
+EurostatCrime1
+```
+
+## Countries with missing dataframe
+```{r}
+complete.cases(EurostatCrime1)
+Countries_with_missing_dataset <- EurostatCrime1[!complete.cases(EurostatCrime1),]
+row.names(Countries_with_missing_dataset)
+```
+
+## Removing countries with missing date from data frame
+```{r}
+DS_missing_data_removed_1 <- EurostatCrime1[complete.cases(EurostatCrime1),]
+DS_missing_data_removed_1
+DS_missing_data_removed_2 <- na.omit(EurostatCrime1)
+DS_missing_data_removed_2
+```
+
+## Size of new data frame
+```{r}
+str(EurostatCrime1)
+str(DS_missing_data_removed_1)
+str(DS_missing_data_removed_2)
+```
+
+## Most common crime in Ireland in 2015
+```{r}
+Common_crime <- EurostatCrime1["Ireland",]
+crime1 <- sort(Common_crime)
+colnames(crime1[5])
+```
+
+## 3 Least common crime in Ireland in 2015
+```{r}
+crime2 <- sort(Common_crime)
+for(i in seq(1,3)){
+  print(colnames(crime2[i]))
+}
+```
+
+## Country with maximum crime
+```{r}
+EurostatCrime1$Max.crime <- EurostatCrime1$Intentional.homicide + EurostatCrime1$Robbery + EurostatCrime1$Sex.crime + EurostatCrime1$Assault + EurostatCrime1$Theft
+head(EurostatCrime1)
+maximum <- which.max(EurostatCrime1$Max.crime)
+row.names(EurostatCrime1)[maximum]
+```
+
+## # Simple Plot
+The Plot reveals the Rape cases invloved in selected European countries during the year 2015.
+
+```{r}
+EurostatCrime <- read.csv(file="EurostatCrime2015.csv")
+EurostatCrime2 <- EurostatCrime
+boxplot(EurostatCrime2$X, EurostatCrime2$Rape, main="Boxplot")
+x <- factor(EurostatCrime2$X)
+y <- factor(EurostatCrime2$Rape)
+plot(x,y, main="Plot of Rape cases in Europe with respect to countries")
+```
+
+
+## Pie Chart
+
+The below Pie chart represents the pictorial representation of Sexual assaults happend in European countries
+during the year 2015.
+
+```{r}
+slices <- c(40.36, 74.65, 34.99, 19.03, 4.52, 7.48)
+lbls <- c("Austria", "Slovenia", "Bulgary", "Croatia", "Sweden", "Switzerland")
+#pie(slices, labels = lbls, main="Sexual assault in European countries")
+pct <- slices
+lbls <- paste(lbls, pct) # add percents to labels
+lbls <- paste(lbls,"%",sep="") # ad % to labels
+pie(slices,labels = lbls, col=rainbow(length(lbls)),
+    main="Sexual assault in European countries in 2015")
+```
+
+## Bar chart
+
+The Bar chart presented below picturizes the Sexual voilence took place in 2015 at few European countries chosen below
+
+```{r}
+findings <- factor(rep(c("Slovakia", "Spain", "Switzerland", "Austria"), c(11.90, 21.25, 32.90, 40.57)))
+par(mar = c(3, 7, 1, 1)) # Adjust the margins on the four sides of the plot
+barplot(height = table(findings), main = "Sexual Voilences in Ireland'15", xlab = "Number of stores",
+        col = 1:4, horiz = TRUE, las = 1)
+```

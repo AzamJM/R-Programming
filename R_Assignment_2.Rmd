@@ -1,0 +1,279 @@
+---
+title: "R Assigment 2"
+author: "Azam Jainullabudin Mohamed & 18201501"
+date: "14 November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1.Load the lawyers' data into R. What proportion of the lawyers practices litigation
+law? (Give your answer to 2 decimal places.)
+```{r}
+Lawyers <- read.csv("Lawyers.csv") #Importing the Lawyer.csv dataset
+head(Lawyers)
+Lawyers$Practice
+Lawyers[,"Practice", drop=FALSE] #Extracting the Practice column
+#Proportion of Lawyers practicing ligitation law
+ligitation_law <- mean(Lawyers$Practice == "Litigation")
+ligitation_law
+#Proportion of Lawyers practicing ligitation law to 2 decimal places
+proporation <- round(mean(Lawyers$Practice == "Litigation"), digits = 2) 
+proporation
+```
+
+2. Is the proportion of lawyers in the Boston office that practice corporate law higher
+than the proportion of lawyers in the Providence office that practice corporate law?
+```{r}
+# Lawyers practicing Corporate law at Boston office
+Lawyers[,c("Office", "Practice"), drop=FALSE]
+#subset(Lawyers, subset = Practice == 'Litigation')
+
+# Lawyers practicing Corporate law at Boston office
+boston_lawyers <- Lawyers[which(Lawyers$Office == 'Boston' & Lawyers$Practice == 'Corporate'),]
+boston_lawyers
+
+# Lawyers practicing Corporate law at Providence office
+corporate_lawyers <- Lawyers[which(Lawyers$Office == 'Providence' & Lawyers$Practice == 'Corporate'),]
+corporate_lawyers
+
+#Count of Boston office lawyers
+boston_length <- length(boston_lawyers$Office)
+boston_length
+
+#Count of Corporate office lawyers
+corporate_length <- length(corporate_lawyers$Office)
+corporate_length
+
+# Sum of both Boston and Corporate office
+total_proporation <- length(boston_lawyers$Office) +length(corporate_lawyers$Office)
+total_proporation
+
+#Proporation of Boston office
+boston_proportion <- boston_length/total_proporation
+boston_proportion
+
+#Proporation of Corporate office
+corporate_length <- corporate_length/total_proporation
+corporate_length
+
+#Verifying if Boston office proporation is greater than Corporate office proportion
+boston_proportion > corporate_length
+```
+
+3.Use the aggregate function to compute the average age of lawyers who practice
+corporate law and of lawyers who practice litigation law, across the different levels
+of seniority. Label the columns of the resulting data frame appropriately.
+```{r}
+# average age of lawyers practising corporate law and litigation law, accross seniority
+avg_age <- Lawyers[which(Lawyers$Practice == 'Litigation' | Lawyers$Practice == 'Corporate'),]
+
+# Using Aggregate function to manipulate the mean of the above match
+output_mean <- aggregate(avg_age$Age, by=list(avg_age$Practice, avg_age$Seniority), FUN =mean)
+
+# Renaming the column names of Group1 and Group2
+colnames(output_mean)[1] <- "Law Practice"
+colnames(output_mean)[2] <- "Seniority level"
+output_mean
+```
+
+4. Which office has the youngest median age?
+```{r}
+# Extracting the lawyers median age
+median_age <- median(Lawyers$Age)
+median_age
+
+# Office with young median age
+young <- Lawyers[which(Lawyers$Age == median_age), "Office"]
+young
+```
+
+Task 2: Writing your own function
+1. Write a function which compute the Rosenbrock banana function using a loop. Test
+the function on the vectors x = (.2, .5) and x = (.2, .5, .1, .6)
+
+```{r}
+# Function for manipulating Rosenbrock banana function using loop
+rosenbrock <- function(x){
+  # Updating the summation end limit as n-1
+  n <- length(x)-1
+  z <- 0
+  s <- 0
+  sum <- 0
+  for(i in 1:n){
+    # Expression for rosenbrock banana function
+    s = (100 * (x[i+1] - x[i] * x[i])^2 + (1 - x[i])^2)
+    z[i] <- s
+  }
+  for(j in 1:n){
+    # Finding the summation
+    sum = sum + z[j]
+    print(sum)
+  }
+}
+# Tesing on Vector x
+x <- c(0.2,0.5)
+print("Rosenbrock function with vector x")
+rosenbrock(x)
+
+# Tesing on vector y
+y <- c(0.2,0.5,0.1,0.6)
+print("Rosenbrock function with vector y")
+rosenbrock(y)
+```
+
+2. Propose an alternative function that does not use any loop. Test the function on
+the same two vectors.
+
+```{r}
+# Function for manipulating Rosenbrock banana function without using loop
+sum <- 0
+banana_function <- function(x){
+  n <- length(x)-1 # Updating the summation end limit as n-1
+  i <- 1:n
+  m = 100 * (x[i+1] - x[i] * x[i])^2 + (1 - x[i])^2
+  # Cummulative sum for calcating the summation values
+  cumsum(m)
+}
+# Tesing on Vector x
+x <- c(0.2,0.5)
+print("Rosenbrock function with vector x")
+banana_function(x)
+
+y <- c(0.2,0.5,0.1,0.6)
+print("Rosenbrock function with vector y")
+banana_function(y)
+```
+
+3.Compare the timings you obtain by repeating the function calls 100 times using the
+vector x = (.2, .5, .1, .6) as input.
+```{r}
+# Printing the timings obtained
+system.time(replicate(100, rosenbrock(x = c(0.2,0.5,0.1,0.6))))
+system.time(replicate(100, banana_function(x = c(0.2,0.5,0.1,0.6))))
+```
+
+Task 3: Writing S3 methods
+1. Load in the data as an object called DublinAirport. Assign to the DublinAiport
+object the classes WeatherData and data.frame.
+
+```{r}
+#Importing the DublinAirport.csv dataset
+DublinAirport <- read.csv("2018_09_Dublin_Airport.csv")
+# Assigning the data frame DublinAirport to the class
+class(DublinAirport) <- c('WeatherData', 'data.frame')
+DublinAirport
+```
+
+2. Write an S3 summary method for an object of class WeatherData which produces
+the following statistical summaries for the rain, maxtp, mintp variables: mean,
+standard deviation, minimum, maximum.
+```{r}
+# Writing a new summary method for class WeatherData
+summary.WeatherData <- function(object){
+  # Calculating the mean, sd, max, min value of "Rain" using sapply and
+  # printing the result using cat command
+  cat('Mean of Rain', sapply(object["rain"], mean), '\n')
+  cat('Standart deviation of Rain', sapply(object["rain"], sd), '\n')
+  cat('Max of Rain', sapply(object["rain"], max), '\n')
+  cat('Min of Rain', sapply(object["rain"], min), '\n')
+  
+  # Calculating the mean, sd, max, min value of "maxtp" using sapply and
+  # printing the result using cat command
+  cat('Mean of maxtp', sapply(object["maxtp"], mean), '\n')
+  cat('Standart deviation of Maxtp', sapply(object["maxtp"], sd), '\n')
+  cat('Max of Maxtp', sapply(object["maxtp"], max), '\n')
+  cat('Min of Maxtp', sapply(object["maxtp"], min), '\n')
+
+  # Calculating the mean, sd, max, min value of "mintp" using sapply and
+  # printing the result using cat command
+  cat('Mean of Mintp', sapply(object["mintp"], mean), '\n')
+  cat('Standart deviation of Mintp', sapply(object["mintp"], sd), '\n')
+  cat('Max of Mintp', sapply(object["mintp"], max), '\n')
+  cat('Min of Mintp', sapply(object["mintp"], min), '\n')
+}
+summary.WeatherData(DublinAirport)
+```
+
+3. Download the new data set 2018 09 Cork Airport.csv from Blackboard, assign
+the classes WeatherData and data.frame to the object containing the Cork data,
+and test your function on it. Interpret your findings for Dublin and Cork Airports.
+```{r}
+#Importing the DublinAirport.csv dataset
+CorkAirport <- read.csv("2018_09_Cork_Airport.csv")
+# Assigning the data frame DublinAirport to the class
+class(CorkAirport) <- c('WeatherData', 'data.frame')
+
+summary.WeatherData(CorkAirport)
+```
+Interpreting both Dublin and Cork dataset, its evident that CorkAirport overweighs that DublinAirport with respect to the precipitation amount based on mean, standard deviationg, minimum, maximum and viceversa with respect to Maximum Air Temperature.
+For minimum air temperature, standart deviation and maximum of DublinAirport is greater than CorkAirport dataset, on the other hand,
+mean and minimum of CorkAirport leads DublinAirport dataset.
+
+4. Create an S3 plot method for the class WeatherData that produces the following plots.
+```{r}
+plot.WeatherData <- function(object, user, color1, color2){
+  # For printing the plot in single panel
+  par(mfrow=c(2,1))
+  if(all(object == DublinAirport) & missing(user)){
+    #For ploting the axis with limits
+    plot(object$ï..date, xlab = "Dates", ylab = "Maximum Air Temperature", main = "Dublin WeatherData", ylim=c(0,25))
+  }
+  else if(all(object == CorkAirport) & missing(user)){
+    #For ploting the axis with limits
+    plot(object$ï..date, xlab = "Dates", ylab = "Maximum Air Temperature", main = "Cork WeatherData", ylim=c(0,25))
+  }
+  else if(all(object == DublinAirport) & user==TRUE){
+    #For ploting the axis with limits
+    plot(object$ï..date, xlab = "Dates", ylab = "Maximum Air Temperature", main = "Dublin WeatherData (User Modified)", ylim=c(0,25))
+  }
+  else if(all(object == CorkAirport) & user==TRUE){
+    #For ploting the axis with limits
+    plot(object$ï..date, xlab = "Dates", ylab = "Maximum Air Temperature", main = "Cork WeatherData (User Modified)", ylim=c(0,25))
+  }
+  #For generating the Maximum temperature plot using red line
+  lines(object$maxtp, col="red")
+  #For generating the Minimum temperature plot using blue line
+  lines(object$mintp, col="blue")
+  
+  #To mention the legend of the plot
+  legend("topright", legend=c("Max.Temperature", "Min.Temperature"), col=c("red", "blue"), lty=1, cex=0.8)
+  # For printing the vertical line
+  abline(v=object$ï..date, lty=2, col="grey")
+  #Hightlighting the highest maximum temperature registered
+  points(object[which.max(object$maxtp),]$ï..date,object[which.max(object$maxtp),]$maxtp, pch=19, bg="black",col="black", lwd=10)
+  #Hightlighting the highest maximum temperature registered using vertical line
+  abline(v=object[which.max(object$maxtp),]$ï..date ,col='darkorange1', lwd=2)
+  #Hightlighting the lowest minimum temperature registered
+  points(object[which.min(object$mintp),]$ï..date,object[which.min(object$mintp),]$mintp, pch=19, bg="black", col="black", lwd=10)
+  #Hightlighting the lowest minimum temperature registered using vertical line
+  abline(v=object[which.min(object$mintp),]$ï..date ,col="darkorange1", lwd=2)
+
+  # USer control to change the color
+  if(!missing(user)){
+    #For generating the Maximum temperature plot using user input color1
+    lines(object$maxtp, col=color1)
+    #For generating the Minimum temperature plot using user input color2
+    lines(object$mintp, col=color2)
+    #To mention the legend of the plot as per user's input
+    legend("topright", legend=c("Max.Temperature", "Min.Temperature"), col=c(color1, color2), lty=1, cex=0.8)
+  }
+  
+  #Bottom plot
+  # Ploting the Precipation plot with vertical line
+  plot(as.numeric(object$ï..date), object$rain, xlab="Date", ylab="Precipitation", type="h", lwd=10)
+  # Highlighting the highest amount of rainfall in red
+  points(as.numeric(object[which.max(object$rain),]$ï..date),object[which.max(object$rain),]$rain, type="h", bg="red",col="red", lwd=10)
+
+  # USer control to change the color
+  if(!missing(user)){
+    points(as.numeric(object[which.max(object$rain),]$ï..date),object[which.max(object$rain),]$rain, type="h", col=color1, lwd=10)
+  }  
+}
+plot.WeatherData(DublinAirport, )
+plot.WeatherData(DublinAirport, user=TRUE, color1 = "green", color2= "dark red")
+plot.WeatherData(CorkAirport)
+plot.WeatherData(CorkAirport, user=TRUE, color1 = "yellow", color2= "green")
+```
